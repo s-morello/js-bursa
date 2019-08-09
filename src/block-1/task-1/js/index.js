@@ -9,6 +9,7 @@ window.addEventListener('load', function loadWindow() {
   var stopGame = false;
 
   function resetGame() {
+    stopGame = false;
     winnMessage.textContent = '';
     for (i = 0; i < cells.length; i++) {
       cells[i].classList.remove('o');
