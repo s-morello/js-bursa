@@ -11,6 +11,7 @@ window.addEventListener('load', function onLoadWindow() {
   var field = document.querySelector('.field');
   var winnerMessage = document.querySelector('.winner-message');
   var startNewGame = document.querySelector('.startNewGame');
+  var cells = document.querySelectorAll('.cell');
 
   function gameState(start) {
     if (start) {
@@ -24,6 +25,7 @@ window.addEventListener('load', function onLoadWindow() {
 
   function render(count) {
     var fragment = document.createDocumentFragment();
+    var l = 0;
     var row;
     var cell;
 
@@ -32,14 +34,36 @@ window.addEventListener('load', function onLoadWindow() {
       row.classList.add('row');
       fragment.appendChild(row);
 
-      for (j = 0; j < count; j++) {
+      for (j = 0; j < count; j++, l++) {
         cell = document.createElement('div');
         cell.classList.add('cell');
+
+        if (storage.items[l] === 'o') {
+          cell.classList.add('o');
+        }
+
+        if (storage.items[l] === 'x') {
+          cell.classList.add('x');
+        }
+
         row.appendChild(cell);
       }
     }
 
     field.appendChild(fragment);
+    cells = document.querySelectorAll('.cell');
+  }
+
+  function getWinnerPlayer() {
+    var winner = getWinner();
+    storage.winner = winner;
+    if (winner === 'x') {
+      winnerMessage.textContent = 'Крестик победил!';
+      storage.stopGame = true;
+    } else if (winner === 'o') {
+      winnerMessage.textContent = 'Нолик победил!';
+      storage.stopGame = true;
+    }
   }
 
   function loadSaveGame() {
@@ -48,15 +72,25 @@ window.addEventListener('load', function onLoadWindow() {
       storage = save;
       gameState(true);
       render(storage.cells);
+      if (storage.winner !== undefined) {
+        if (storage.winner === 'x') {
+          winnerMessage.textContent = 'Крестик победил!';
+        } else if (storage.winner === 'o') {
+          winnerMessage.textContent = 'Нолик победил!';
+        }
+      }
     }
   }
 
   function init() {
     errorMessage.textContent = '';
+    winnerMessage.textContent = '';
     field.innerHTML = '';
     storage = {};
-    storage.turn = 'o';
+    storage.turn = 'x';
     storage.stopGame = false;
+    storage.items = [];
+    storage.winner = undefined;
     localStorage.removeItem('game');
   }
 
@@ -82,27 +116,21 @@ window.addEventListener('load', function onLoadWindow() {
     saveGame();
   }
 
-  function getWinnerPlayer() {
-    var winner = getWinner();
-    if (winner === 'x') {
-      winnerMessage.textContent = 'Крестик победил!';
-      storage.stopGame = true;
-    } else if (winner === 'o') {
-      winnerMessage.textContent = 'Нолик победил!';
-      storage.stopGame = true;
-    }
-  }
-
   function playerMove(event) {
     var target = event.target;
+    var index;
     if (storage.stopGame) return;
 
     if (target.classList.contains('cell')) {
       if (target.classList.contains('x') || target.classList.contains('o')) {
         return;
       }
+
+      index = Array.prototype.indexOf.call(cells, target);
+      storage.items[index] = storage.turn;
       target.classList.add(storage.turn);
       storage.turn = (storage.turn === 'o') ? 'x' : 'o';
+
       getWinnerPlayer();
       saveGame();
     }
